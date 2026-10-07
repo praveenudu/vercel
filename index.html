@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Land Steal</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:#f9f9f7; --surface:#fcfcfb;
+    --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --border:rgba(11,11,11,0.10);
+    --bar:#2a78d6; --bar-track:#cde2fb;
+    --chip:rgba(11,11,11,0.05);
+    --good:#006300; --flag:#2a78d6; --warn:#d03b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page:#0d0d0d; --surface:#1a1a19;
+      --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+      --grid:#2c2c2a; --border:rgba(255,255,255,0.10);
+      --bar:#3987e5; --bar-track:#184f95;
+      --chip:rgba(255,255,255,0.07);
+      --good:#0ca30c; --flag:#3987e5; --warn:#e66767;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:#0d0d0d; --surface:#1a1a19;
+    --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --border:rgba(255,255,255,0.10);
+    --bar:#3987e5; --bar-track:#184f95;
+    --chip:rgba(255,255,255,0.07);
+    --good:#0ca30c; --flag:#3987e5; --warn:#e66767;
+  }
+
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; }
+  body {
+    background:var(--page); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:15px; line-height:1.45; -webkit-font-smoothing:antialiased;
+  }
+  .wrap { max-width:1080px; margin:0 auto; padding:32px 16px 64px; }
+
+  header { margin-bottom:20px; }
+  h1 { font-size:26px; letter-spacing:-0.01em; margin:0 0 4px; }
+  .sub { color:var(--ink-2); font-size:14px; margin:0; }
+
+  .tabs { display:flex; gap:2px; border-bottom:1px solid var(--grid); margin:22px 0 20px; flex-wrap:wrap; }
+  .tabs button {
+    font:inherit; font-size:14px; padding:10px 15px; border:0; cursor:pointer;
+    background:transparent; color:var(--ink-2);
+    border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap;
+  }
+  .tabs button[aria-selected="true"] { color:var(--ink); border-bottom-color:var(--bar); font-weight:500; }
+  .tabs .count { color:var(--muted); font-size:12px; margin-left:6px; font-variant-numeric:tabular-nums; }
+
+  .tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:0 0 20px; }
+  .tile { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
+  .tile .label { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; }
+  .tile .value { font-size:24px; margin-top:2px; }
+  .tile .value small { font-size:13px; color:var(--ink-2); }
+
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:18px; }
+  .seg { display:inline-flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--surface); }
+  .seg button { font:inherit; font-size:13px; padding:7px 13px; border:0; background:transparent; color:var(--ink-2); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--bar); color:#fff; }
+  .ghost { font:inherit; font-size:13px; padding:7px 13px; cursor:pointer; background:var(--surface); color:var(--ink-2); border:1px solid var(--border); border-radius:8px; }
+
+  section.county { background:var(--surface); border:1px solid var(--border); border-radius:12px; margin-bottom:18px; overflow:hidden; }
+  .county-head { display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding:14px 16px; border-bottom:1px solid var(--grid); }
+  .county-head h2 { font-size:16px; margin:0; }
+  .county-head .meta { font-size:12px; color:var(--muted); }
+
+  table { width:100%; border-collapse:collapse; }
+  th,td { text-align:left; padding:10px 12px; font-size:14px; vertical-align:middle; }
+  th { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; font-weight:600; }
+  td.num,th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  tbody tr { border-top:1px solid var(--grid); }
+  tbody tr:hover { background:var(--chip); }
+  .rank { color:var(--muted); font-variant-numeric:tabular-nums; width:28px; }
+  .addr { font-weight:500; }
+  .addr a { color:inherit; text-decoration:none; }
+  .addr a:hover { text-decoration:underline; }
+  .where { color:var(--ink-2); font-size:12.5px; }
+  .chip { display:inline-block; font-size:11px; padding:2px 7px; border-radius:999px; background:var(--chip); color:var(--ink-2); margin-left:6px; white-space:nowrap; }
+  .chip.drop { color:var(--good); }
+  .chip.firm { color:#fff; background:var(--flag); font-weight:500; }
+  .chip.soon { color:var(--good); font-weight:500; }
+  .chip.days { color:var(--warn); font-weight:500; }
+
+  .bar-cell { width:130px; }
+  .track { height:6px; border-radius:3px; background:var(--bar-track); overflow:hidden; }
+  .fill { height:6px; border-radius:3px; background:var(--bar); }
+
+  .note { color:var(--muted); font-size:12.5px; margin-top:18px; }
+  .callout { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--bar); border-radius:8px; padding:12px 14px; margin-bottom:18px; font-size:13.5px; color:var(--ink-2); }
+  .callout strong { color:var(--ink); }
+  .msg { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; color:var(--ink-2); }
+  .msg code { display:inline-block; margin-top:6px; font-size:12.5px; color:var(--muted); word-break:break-all; }
+  .hide { display:none; }
+  .srcs { font-size:12.5px; color:var(--ink-2); line-height:1.7; }
+  .srcs a, .cal a { color:var(--flag); }
+
+  .cal { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; margin-bottom:18px; }
+  .cal .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
+  .cal .card h3 { font-size:14px; margin:0 0 6px; }
+  .cal .card p { margin:0 0 6px; font-size:12.5px; color:var(--ink-2); line-height:1.5; }
+  .cal .card .loc { color:var(--muted); }
+  .dates { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+  .dates .d { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:13px; font-variant-numeric:tabular-nums; }
+  .dates .d.next { border-color:var(--bar); color:var(--ink); font-weight:500; }
+  .dates .d small { display:block; color:var(--muted); font-size:11px; }
+
+  @media (max-width:640px) {
+    .bar-cell, th.bar-cell, .col-type, th.col-type { display:none; }
+    .wrap { padding-top:22px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Land Steal</h1>
+    <p class="sub">Texas land listings, foreclosure auctions, county tax sales and trustee sales across Williamson, Burnet, Bell, Bastrop and McLennan counties.</p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button id="tabLand" role="tab" aria-selected="true">Land listings<span class="count" id="cLand"></span></button>
+    <button id="tabAuc" role="tab" aria-selected="false">Auctions<span class="count" id="cAuc"></span></button>
+    <button id="tabTax" role="tab" aria-selected="false">Tax sales<span class="count" id="cTax"></span></button>
+    <button id="tabTru" role="tab" aria-selected="false">Trustee sales<span class="count" id="cTru"></span></button>
+  </div>
+
+  <!-- LAND -->
+  <div id="paneLand">
+    <div class="tiles" id="tilesLand"></div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Sort land listings">
+        <button id="byPrice" aria-pressed="true">Cheapest price</button>
+        <button id="byAcre" aria-pressed="false">Cheapest $/acre</button>
+      </div>
+      <button class="ghost" id="refreshLand">Refresh</button>
+      <span class="where" id="stampLand"></span>
+    </div>
+    <div id="outLand"><div class="msg">Loading listings...</div></div>
+    <p class="note">Top 5 per county. Bars show price per acre relative to the most expensive listing shown. Fed daily from Redfin, LandWatch and Realtor.com alert emails.</p>
+  </div>
+
+  <!-- AUCTIONS -->
+  <div id="paneAuc" class="hide">
+    <div class="tiles" id="tilesAuc"></div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Filter auctions">
+        <button id="aAll" aria-pressed="true">All listings</button>
+        <button id="aFirm" aria-pressed="false">Published minimums only</button>
+      </div>
+      <button class="ghost" id="refreshAuc">Refresh</button>
+      <span class="where" id="stampAuc"></span>
+    </div>
+    <div id="outAuc"><div class="msg">Loading auctions...</div></div>
+    <p class="note"><strong>Firm</strong> marks a genuine published floor &mdash; an Opening Bid or Starting Bid. Everything else is an estimate: &ldquo;Est. Credit Bid&rdquo; is the lender&rsquo;s projected opening bid, not a commitment, and &ldquo;Est. Market Value&rdquo; means no bid figure was disclosed. Xome publishes a reserve on its online auctions; Auction.com never does.</p>
+  </div>
+
+  <!-- TAX SALES -->
+  <div id="paneTax" class="hide">
+    <div class="callout">
+      <strong>Texas is a redeemable tax deed state, not a tax lien state.</strong> You are not buying a lien certificate &mdash; you are buying the property at a constable sale, subject to the former owner&rsquo;s right of redemption: <strong>2 years</strong> for homestead or agricultural land, <strong>180 days</strong> for everything else. Redemption repays you plus a 25% premium in year one. Every starting bid below is a real published minimum.
+    </div>
+    <div class="tiles" id="tilesTax"></div>
+    <div class="controls">
+      <button class="ghost" id="refreshTax">Refresh</button>
+      <span class="where" id="stampTax"></span>
+    </div>
+    <div id="outTax"><div class="msg">Loading tax sales...</div></div>
+    <div class="note srcs">
+      <strong>Where each county publishes its list</strong><br>
+      <strong>Burnet</strong> &mdash; MVBA online auction &middot; <a href="https://www.mvbataxsales.com/" target="_blank" rel="noopener">mvbataxsales.com</a> (register 24h ahead)<br>
+      <strong>Williamson</strong> &mdash; MVBA, in person, 1st Tuesday 10am, Justice Center Annex, Georgetown &middot; <a href="https://www.wilcotx.gov/762/Tax-Sales" target="_blank" rel="noopener">wilcotx.gov</a><br>
+      <strong>McLennan</strong> &mdash; MVBA via GovEase online &middot; <a href="https://www.govease.com/" target="_blank" rel="noopener">govease.com</a><br>
+      <strong>Bell / Bastrop</strong> &mdash; not on MVBA&rsquo;s current list; check the county constable and <a href="https://mvbalaw.com/tax-sales/month-sales/" target="_blank" rel="noopener">MVBA monthly sales</a> each month<br>
+      Sales are always the <strong>first Tuesday</strong>. Lists post roughly 30 days ahead, so this tab is empty between postings.
+    </div>
+  </div>
+
+  <!-- TRUSTEE SALES -->
+  <div id="paneTru" class="hide">
+    <div class="callout">
+      <strong>Trustee sales do not publish an opening bid in advance.</strong> These are non-judicial foreclosures under a deed of trust. The lender&rsquo;s opening bid is announced aloud at the sale, so there is no minimum to screen on beforehand &mdash; only the notice, the legal description and the original loan balance. Notices must be filed with the county clerk and posted at the courthouse <strong>at least 21 days</strong> before the sale. Sales run the <strong>first Tuesday</strong>, 10am&ndash;4pm (first Wednesday if the 1st falls on Jan 1 or Jul 4). Buyers take title <em>as-is, subject to superior liens</em>, with no redemption right and usually no inspection.
+    </div>
+    <div class="dates" id="truDates"></div>
+    <div class="tiles" id="tilesTru"></div>
+    <div class="controls">
+      <button class="ghost" id="refreshTru">Refresh</button>
+      <span class="where" id="stampTru"></span>
+    </div>
+    <div id="outTru"><div class="msg">Loading trustee sales...</div></div>
+
+    <h2 style="font-size:15px;margin:26px 0 10px;">Where each county posts its notices</h2>
+    <div class="cal">
+      <div class="card">
+        <h3>Bell County</h3>
+        <p class="loc">Clerk&rsquo;s alcove, east of the main entrance, Bell County Justice Complex, 1201 Huey Drive, Belton</p>
+        <p><a href="https://www.bellcountytx.com/county_government/county_clerk/foreclosures.php" target="_blank" rel="noopener">County Clerk foreclosures &rarr;</a></p>
+      </div>
+      <div class="card">
+        <h3>Bastrop County</h3>
+        <p class="loc">Monthly notice postings published as PDFs &mdash; October, November and December are already up</p>
+        <p><a href="https://www.bastropcounty.gov/page/co.county_clerk_foreclosure" target="_blank" rel="noopener">Foreclosure Notice Postings &rarr;</a></p>
+      </div>
+      <div class="card">
+        <h3>McLennan County</h3>
+        <p class="loc">County Clerk foreclosure sale site</p>
+        <p><a href="https://www.mclennan.gov/faq.aspx?TID=19" target="_blank" rel="noopener">Clerk foreclosure info &rarr;</a></p>
+      </div>
+      <div class="card">
+        <h3>Williamson County</h3>
+        <p class="loc">Justice Center Annex, 4th &amp; Martin Luther King, Georgetown</p>
+        <p><a href="https://www.wilcotx.gov/308/Foreclosure-Trustee-Sales" target="_blank" rel="noopener">Foreclosure &amp; Trustee Sales &rarr;</a></p>
+      </div>
+      <div class="card">
+        <h3>Burnet County</h3>
+        <p class="loc">Courthouse, designated area &mdash; check clerk postings</p>
+        <p><a href="https://www.burnetcountytexas.org/" target="_blank" rel="noopener">Burnet County &rarr;</a></p>
+      </div>
+    </div>
+    <p class="note">Notices are filed as legal descriptions, so many carry no street address. The table above fills as notices are parsed; the calendar and posting links work regardless.</p>
+  </div>
+</div>
+
+<script>
+  var SUPABASE_URL='https://yroriuzymrjfpulqiypm.supabase.co';
+  var SUPABASE_KEY='sb_publishable_an9CcKBmDsroOm9ztCALyQ_tWba_Y2O';
+
+  var MODE='price', AMODE='all', LAND=[], AUC=[], TAX=[], TRU=[];
+
+  var usd=function(n){ if(n===null||n===undefined||isNaN(n))return '--';
+    return '$'+Math.round(Number(n)).toLocaleString('en-US'); };
+  var acresFmt=function(n){ if(n===null||n===undefined||isNaN(n))return '--';
+    var v=Number(n); return (v<10?String(Math.round(v*100)/100):String(Math.round(v*10)/10))+' ac'; };
+  var esc=function(s){ return String(s===null||s===undefined?'':s).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+  function tile(label,value,sub){ return '<div class="tile"><div class="label">'+esc(label)+'</div>'+
+    '<div class="value">'+esc(value)+(sub?' <small>'+sub+'</small>':'')+'</div></div>'; }
+  function showError(el,stamp,title,detail){
+    document.getElementById(stamp).textContent='';
+    document.getElementById(el).innerHTML='<div class="msg"><strong>'+esc(title)+'</strong>'+
+      (detail?'<br><code>'+esc(detail)+'</code>':'')+'</div>'; }
+  function q(table,params){
+    return fetch(SUPABASE_URL+'/rest/v1/'+table+'?'+params,
+      {headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}})
+      .then(function(r){ return r.text().then(function(t){ return {ok:r.ok,status:r.status,text:t}; }); });
+  }
+  function daysTo(d){ if(!d)return null;
+    var t=new Date(d+'T10:00:00'); return Math.ceil((t-new Date())/86400000); }
+
+  /* ---------- LAND ---------- */
+  function landKey(r){ var v=(MODE==='acre')?r.price_per_acre_usd:r.price_usd;
+    return (v===null||v===undefined)?Infinity:Number(v); }
+
+  function renderLand(){
+    var out=document.getElementById('outLand');
+    if(!LAND.length){ out.innerHTML='<div class="msg">No land listings yet.</div>'; return; }
+    var g={}; LAND.forEach(function(r){ var c=r.county||'Unknown'; (g[c]=g[c]||[]).push(r); });
+    var counties=Object.keys(g).sort(), totals={}, shown=[];
+    counties.forEach(function(c){ totals[c]=g[c].length;
+      g[c].sort(function(a,b){return landKey(a)-landKey(b);}); g[c]=g[c].slice(0,5); shown=shown.concat(g[c]); });
+    var maxAcre=0, cheapest=null;
+    shown.forEach(function(r){ var v=Number(r.price_per_acre_usd);
+      if(r.price_per_acre_usd!==null&&!isNaN(v)){ if(v>maxAcre)maxAcre=v;
+        if(cheapest===null||v<Number(cheapest.price_per_acre_usd))cheapest=r; } });
+    document.getElementById('tilesLand').innerHTML=
+      tile('Listings tracked',LAND.length)+tile('Counties',counties.length)+
+      tile('Cheapest per acre',cheapest?usd(cheapest.price_per_acre_usd):'--',cheapest?esc(cheapest.address):'');
+    out.innerHTML=counties.map(function(c){
+      var rows=g[c].map(function(r,i){
+        var acre=Number(r.price_per_acre_usd);
+        var has=!(r.price_per_acre_usd===null||isNaN(acre));
+        var pct=(has&&maxAcre>0)?Math.max(3,(acre/maxAcre)*100):0;
+        var drop=(r.status==='price_drop'&&r.price_change_usd)?'<span class="chip drop">'+usd(Math.abs(r.price_change_usd))+' drop</span>':'';
+        var place=[r.city,r.zip].filter(Boolean).join(' ');
+        return '<tr title="'+esc(r.notes||'')+'">'+
+          '<td class="rank">'+(i+1)+'</td>'+
+          '<td><span class="addr">'+esc(r.address)+'</span>'+drop+
+            '<div class="where">'+esc(place)+' &middot; '+esc(r.source||'')+'</div></td>'+
+          '<td class="num">'+acresFmt(r.acres)+'</td>'+
+          '<td class="num">'+usd(r.price_usd)+'</td>'+
+          '<td class="num">'+(has?usd(acre):'--')+'</td>'+
+          '<td class="bar-cell"><div class="track"><div class="fill" style="width:'+pct.toFixed(1)+'%"></div></div></td>'+
+        '</tr>'; }).join('');
+      return '<section class="county"><div class="county-head"><h2>'+esc(c)+' County</h2>'+
+        '<span class="meta">top '+g[c].length+' of '+totals[c]+'</span></div>'+
+        '<table><thead><tr><th></th><th>Listing</th><th class="num">Size</th>'+
+        '<th class="num">Price</th><th class="num">$/acre</th><th class="bar-cell">Relative $/acre</th>'+
+        '</tr></thead><tbody>'+rows+'</tbody></table></section>'; }).join('');
+  }
+
+  function loadLand(){
+    document.getElementById('stampLand').textContent='Loading...';
+    q('land_listings','select=*&order=price_usd.asc&limit=1000').then(function(res){
+      if(!res.ok){ showError('outLand','stampLand','Supabase returned HTTP '+res.status,res.text.slice(0,300)); return; }
+      LAND=JSON.parse(res.text);
+      document.getElementById('cLand').textContent=LAND.length;
+      document.getElementById('stampLand').textContent='Updated '+new Date().toLocaleString();
+      renderLand();
+    }).catch(function(e){ showError('outLand','stampLand','Could not reach Supabase',String(e)); });
+  }
+
+  /* ---------- AUCTIONS ---------- */
+  function renderAuc(){
+    var out=document.getElementById('outAuc');
+    var data=AUC.filter(function(r){ return AMODE==='all'||r.is_published_minimum===true; });
+    var firmAll=AUC.filter(function(r){ return r.is_published_minimum===true; });
+    var cheapFirm=null;
+    firmAll.forEach(function(r){ var v=Number(r.price_usd);
+      if(isNaN(v)||r.price_usd===null)return;
+      if(cheapFirm===null||v<Number(cheapFirm.price_usd))cheapFirm=r; });
+    document.getElementById('tilesAuc').innerHTML=
+      tile('Auctions tracked',AUC.length)+
+      tile('Published minimums',firmAll.length)+
+      tile('Lowest firm minimum',cheapFirm?usd(cheapFirm.price_usd):'--',cheapFirm?esc(cheapFirm.city||''):'');
+    if(!data.length){ out.innerHTML='<div class="msg">No auctions match this filter.</div>'; return; }
+    var g={}; data.forEach(function(r){ var c=r.county||'Unknown'; (g[c]=g[c]||[]).push(r); });
+    var counties=Object.keys(g).sort();
+    out.innerHTML=counties.map(function(c){
+      g[c].sort(function(a,b){
+        var av=(a.price_usd===null||a.price_usd===undefined)?Infinity:Number(a.price_usd);
+        var bv=(b.price_usd===null||b.price_usd===undefined)?Infinity:Number(b.price_usd);
+        return av-bv; });
+      var rows=g[c].map(function(r,i){
+        var firm=r.is_published_minimum===true?'<span class="chip firm">Firm</span>':'';
+        var soon=/Ends (today|in 1 day)/i.test(r.timing||'')?'<span class="chip soon">'+esc(r.timing)+'</span>':'';
+        var name=esc(r.address);
+        if(r.url) name='<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+name+'</a>';
+        return '<tr>'+
+          '<td class="rank">'+(i+1)+'</td>'+
+          '<td><span class="addr">'+name+'</span>'+firm+soon+
+            '<div class="where">'+esc(r.source||'')+' &middot; '+esc(r.auction_type||'')+
+            (r.bid_mode?' &middot; '+esc(r.bid_mode):'')+(r.timing&&!soon?' &middot; '+esc(r.timing):'')+'</div></td>'+
+          '<td class="col-type where">'+esc(r.price_type||'')+'</td>'+
+          '<td class="num">'+usd(r.price_usd)+'</td>'+
+          '<td class="num">'+(r.reserve_usd?usd(r.reserve_usd):'--')+'</td>'+
+        '</tr>'; }).join('');
+      return '<section class="county"><div class="county-head"><h2>'+esc(c)+' County</h2>'+
+        '<span class="meta">'+g[c].length+' listing'+(g[c].length===1?'':'s')+'</span></div>'+
+        '<table><thead><tr><th></th><th>Property</th><th class="col-type">Price type</th>'+
+        '<th class="num">Price</th><th class="num">Reserve</th>'+
+        '</tr></thead><tbody>'+rows+'</tbody></table></section>'; }).join('');
+  }
+
+  function loadAuc(){
+    document.getElementById('stampAuc').textContent='Loading...';
+    q('auction_listings','select=*&order=price_usd.asc&limit=2000').then(function(res){
+      if(!res.ok){ showError('outAuc','stampAuc','Supabase returned HTTP '+res.status,res.text.slice(0,300)); return; }
+      AUC=JSON.parse(res.text);
+      document.getElementById('cAuc').textContent=AUC.length;
+      document.getElementById('stampAuc').textContent='Updated '+new Date().toLocaleString();
+      renderAuc();
+    }).catch(function(e){ showError('outAuc','stampAuc','Could not reach Supabase',String(e)); });
+  }
+
+  /* ---------- TAX SALES ---------- */
+  function renderTax(){
+    var out=document.getElementById('outTax');
+    var upcoming=TAX.filter(function(r){ var d=daysTo(r.sale_date); return d===null||d>=0; });
+    var cheap=null;
+    upcoming.forEach(function(r){ var v=Number(r.starting_bid_usd);
+      if(isNaN(v)||r.starting_bid_usd===null)return;
+      if(cheap===null||v<Number(cheap.starting_bid_usd))cheap=r; });
+    var next=null;
+    upcoming.forEach(function(r){ var d=daysTo(r.sale_date);
+      if(d===null)return; if(next===null||d<next.d)next={d:d,date:r.sale_date}; });
+    document.getElementById('tilesTax').innerHTML=
+      tile('Lots posted',upcoming.length)+
+      tile('Lowest starting bid',cheap?usd(cheap.starting_bid_usd):'--',cheap?esc(cheap.city||''):'')+
+      tile('Next sale',next?(next.d===0?'Today':next.d+(next.d===1?' day':' days')):'--',
+           next?new Date(next.date+'T10:00:00').toLocaleDateString():'');
+    if(!upcoming.length){ out.innerHTML='<div class="msg">No tax sale lots posted right now. Lists appear about 30 days before each first-Tuesday sale.</div>'; return; }
+    var g={}; upcoming.forEach(function(r){ var c=r.county||'Unknown'; (g[c]=g[c]||[]).push(r); });
+    out.innerHTML=Object.keys(g).sort().map(function(c){
+      g[c].sort(function(a,b){
+        var av=(a.starting_bid_usd===null)?Infinity:Number(a.starting_bid_usd);
+        var bv=(b.starting_bid_usd===null)?Infinity:Number(b.starting_bid_usd);
+        return av-bv; });
+      var d=daysTo(g[c][0].sale_date);
+      var when=g[c][0].sale_date?new Date(g[c][0].sale_date+'T10:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'';
+      var urgent=(d!==null&&d<=7)?'<span class="chip days">'+(d===0?'Today':'in '+d+' day'+(d===1?'':'s'))+'</span>':'';
+      var rows=g[c].map(function(r,i){
+        var name=esc(r.address||'(no address given)');
+        if(r.auction_url) name='<a href="'+esc(r.auction_url)+'" target="_blank" rel="noopener">'+name+'</a>';
+        return '<tr><td class="rank">'+(i+1)+'</td>'+
+          '<td><span class="addr">'+name+'</span>'+
+            '<div class="where">'+esc(r.city||'')+(r.bid_mode?' &middot; '+esc(r.bid_mode):'')+
+            ' &middot; '+esc(r.source||'')+'</div></td>'+
+          '<td class="col-type where">'+esc(r.account_no?'Acct '+r.account_no:'')+
+            (r.suit_no?'<div class="where">Suit '+esc(r.suit_no)+'</div>':'')+'</td>'+
+          '<td class="num">'+usd(r.starting_bid_usd)+'</td></tr>'; }).join('');
+      return '<section class="county"><div class="county-head"><h2>'+esc(c)+' County '+urgent+'</h2>'+
+        '<span class="meta">'+g[c].length+' lot'+(g[c].length===1?'':'s')+(when?' &middot; sale '+when:'')+'</span></div>'+
+        '<table><thead><tr><th></th><th>Property</th><th class="col-type">Account</th>'+
+        '<th class="num">Starting bid</th></tr></thead><tbody>'+rows+'</tbody></table></section>'; }).join('');
+  }
+
+  function loadTax(){
+    document.getElementById('stampTax').textContent='Loading...';
+    q('tax_sales','select=*&order=starting_bid_usd.asc&limit=2000').then(function(res){
+      if(!res.ok){ showError('outTax','stampTax','Supabase returned HTTP '+res.status,res.text.slice(0,300)); return; }
+      TAX=JSON.parse(res.text);
+      document.getElementById('cTax').textContent=TAX.length;
+      document.getElementById('stampTax').textContent='Updated '+new Date().toLocaleString();
+      renderTax();
+    }).catch(function(e){ showError('outTax','stampTax','Could not reach Supabase',String(e)); });
+  }
+
+  /* ---------- TRUSTEE SALES ---------- */
+  function firstTuesdays(n){
+    var out=[], d=new Date(), y=d.getFullYear(), m=d.getMonth();
+    while(out.length<n){
+      var f=new Date(y,m,1);
+      while(f.getDay()!==2) f.setDate(f.getDate()+1);
+      // first Wednesday if the 1st is Jan 1 or Jul 4
+      var mm=f.getMonth(), dd=f.getDate();
+      if((mm===0&&dd===1)||(mm===6&&dd===4)) f.setDate(f.getDate()+1);
+      if(f>=new Date(new Date().toDateString())) out.push(new Date(f));
+      m++; if(m>11){m=0;y++;}
+    }
+    return out;
+  }
+
+  function renderTruDates(){
+    var ds=firstTuesdays(5);
+    document.getElementById('truDates').innerHTML=ds.map(function(d,i){
+      var days=Math.ceil((new Date(d.getFullYear(),d.getMonth(),d.getDate(),10)-new Date())/86400000);
+      return '<div class="d'+(i===0?' next':'')+'">'+
+        d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+
+        '<small>'+(i===0?(days<=0?'today':'in '+days+' day'+(days===1?'':'s')):'')+
+        (i===0?'':'notices due '+new Date(d.getTime()-21*86400000).toLocaleDateString(undefined,{month:'short',day:'numeric'}))+
+        '</small></div>'; }).join('');
+  }
+
+  function renderTru(){
+    var out=document.getElementById('outTru');
+    var upcoming=TRU.filter(function(r){ var d=daysTo(r.sale_date); return d===null||d>=0; });
+    var counties={}; upcoming.forEach(function(r){ counties[r.county||'Unknown']=1; });
+    var bal=0, n=0;
+    upcoming.forEach(function(r){ var v=Number(r.original_balance_usd);
+      if(!isNaN(v)&&r.original_balance_usd!==null){ bal+=v; n++; } });
+    document.getElementById('tilesTru').innerHTML=
+      tile('Notices posted',upcoming.length)+
+      tile('Counties',Object.keys(counties).length)+
+      tile('Median loan balance',n?usd(bal/n):'--',n?'across '+n+' notices':'');
+    if(!upcoming.length){
+      out.innerHTML='<div class="msg">No trustee notices parsed yet. The calendar and the county posting links below are live &mdash; notices are filed as legal descriptions and need parsing from each county&rsquo;s PDFs.</div>';
+      return; }
+    var g={}; upcoming.forEach(function(r){ var c=r.county||'Unknown'; (g[c]=g[c]||[]).push(r); });
+    out.innerHTML=Object.keys(g).sort().map(function(c){
+      g[c].sort(function(a,b){ return String(a.sale_date||'').localeCompare(String(b.sale_date||'')); });
+      var d=daysTo(g[c][0].sale_date);
+      var urgent=(d!==null&&d<=7)?'<span class="chip days">'+(d<=0?'Today':'in '+d+' day'+(d===1?'':'s'))+'</span>':'';
+      var rows=g[c].map(function(r,i){
+        var name=esc(r.address||r.legal_description||'(legal description only)');
+        if(r.notice_url) name='<a href="'+esc(r.notice_url)+'" target="_blank" rel="noopener">'+name+'</a>';
+        return '<tr><td class="rank">'+(i+1)+'</td>'+
+          '<td><span class="addr">'+name+'</span>'+
+            '<div class="where">'+esc(r.city||'')+(r.law_firm?' &middot; '+esc(r.law_firm):'')+
+            (r.substitute_trustee?' &middot; '+esc(r.substitute_trustee):'')+'</div></td>'+
+          '<td class="col-type where">'+(r.sale_date?new Date(r.sale_date+'T10:00:00').toLocaleDateString():'')+'</td>'+
+          '<td class="num">'+usd(r.original_balance_usd)+'</td></tr>'; }).join('');
+      return '<section class="county"><div class="county-head"><h2>'+esc(c)+' County '+urgent+'</h2>'+
+        '<span class="meta">'+g[c].length+' notice'+(g[c].length===1?'':'s')+'</span></div>'+
+        '<table><thead><tr><th></th><th>Property</th><th class="col-type">Sale date</th>'+
+        '<th class="num">Orig. balance</th></tr></thead><tbody>'+rows+'</tbody></table></section>'; }).join('');
+  }
+
+  function loadTru(){
+    document.getElementById('stampTru').textContent='Loading...';
+    renderTruDates();
+    q('trustee_sales','select=*&order=sale_date.asc&limit=3000').then(function(res){
+      if(!res.ok){ showError('outTru','stampTru','Supabase returned HTTP '+res.status,res.text.slice(0,300)); return; }
+      TRU=JSON.parse(res.text);
+      document.getElementById('cTru').textContent=TRU.length;
+      document.getElementById('stampTru').textContent='Updated '+new Date().toLocaleString();
+      renderTru();
+    }).catch(function(e){ showError('outTru','stampTru','Could not reach Supabase',String(e)); });
+  }
+
+  /* ---------- wiring ---------- */
+  function selectTab(which){
+    var m={land:'tabLand',auc:'tabAuc',tax:'tabTax',tru:'tabTru'};
+    var p={land:'paneLand',auc:'paneAuc',tax:'paneTax',tru:'paneTru'};
+    Object.keys(m).forEach(function(k){
+      document.getElementById(m[k]).setAttribute('aria-selected',k===which?'true':'false');
+      document.getElementById(p[k]).className=(k===which)?'':'hide';
+    });
+    try{ localStorage.setItem('ls_tab',which); }catch(e){}
+  }
+  ['land','auc','tax','tru'].forEach(function(k){
+    var id={land:'tabLand',auc:'tabAuc',tax:'tabTax',tru:'tabTru'}[k];
+    document.getElementById(id).addEventListener('click',function(){selectTab(k);});
+  });
+
+  document.getElementById('byPrice').addEventListener('click',function(){
+    MODE='price'; this.setAttribute('aria-pressed','true');
+    document.getElementById('byAcre').setAttribute('aria-pressed','false'); renderLand(); });
+  document.getElementById('byAcre').addEventListener('click',function(){
+    MODE='acre'; this.setAttribute('aria-pressed','true');
+    document.getElementById('byPrice').setAttribute('aria-pressed','false'); renderLand(); });
+  document.getElementById('aAll').addEventListener('click',function(){
+    AMODE='all'; this.setAttribute('aria-pressed','true');
+    document.getElementById('aFirm').setAttribute('aria-pressed','false'); renderAuc(); });
+  document.getElementById('aFirm').addEventListener('click',function(){
+    AMODE='firm'; this.setAttribute('aria-pressed','true');
+    document.getElementById('aAll').setAttribute('aria-pressed','false'); renderAuc(); });
+  document.getElementById('refreshLand').addEventListener('click',loadLand);
+  document.getElementById('refreshAuc').addEventListener('click',loadAuc);
+  document.getElementById('refreshTax').addEventListener('click',loadTax);
+  document.getElementById('refreshTru').addEventListener('click',loadTru);
+
+  try{ var s=localStorage.getItem('ls_tab');
+    if(s==='auc'||s==='tax'||s==='tru')selectTab(s); }catch(e){}
+  loadLand(); loadAuc(); loadTax(); loadTru();
+</script>
+</body>
+</html>
