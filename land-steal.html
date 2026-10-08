@@ -118,6 +118,29 @@
     .bar-cell, th.bar-cell, .col-type, th.col-type { display:none; }
     .wrap { padding-top:22px; }
   }
+
+  .leadbox { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--bar); border-radius:12px; padding:18px 20px; margin-bottom:22px; }
+  .leadbox h2 { font-size:16px; margin:0 0 4px; }
+  .leadbox p.hint { color:var(--ink-2); font-size:13px; margin:0 0 14px; }
+  .leadform { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+  .leadform .full { grid-column:1/-1; }
+  .leadform label { display:block; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px; }
+  .leadform input, .leadform select, .leadform textarea {
+    width:100%; font:inherit; font-size:14px; padding:9px 11px; border:1px solid var(--border);
+    border-radius:8px; background:var(--page); color:var(--ink);
+  }
+  .leadform textarea { resize:vertical; min-height:60px; }
+  .leadform .submitrow { display:flex; align-items:center; gap:12px; margin-top:2px; }
+  .leadbtn {
+    font:inherit; font-size:14px; font-weight:500; padding:10px 18px; border:0; border-radius:8px;
+    background:var(--bar); color:#fff; cursor:pointer;
+  }
+  .leadbtn:disabled { opacity:0.6; cursor:default; }
+  .leadmsg { font-size:13px; }
+  .leadmsg.ok { color:var(--good); }
+  .leadmsg.err { color:var(--warn); }
+  .leadbox .consent { grid-column:1/-1; font-size:12px; color:var(--muted); display:flex; gap:6px; align-items:flex-start; }
+  .leadbox .consent input { width:auto; margin-top:2px; }
 </style>
 </head>
 <body>
@@ -126,6 +149,44 @@
     <h1>Land Steal</h1>
     <p class="sub">Texas land listings, foreclosure auctions, county tax sales and trustee sales across Williamson, Burnet, Bell, Bastrop and McLennan counties.</p>
   </header>
+
+  <section class="leadbox" id="leadBox">
+    <h2>Want help acting on one of these?</h2>
+    <p class="hint">Leave your info and we'll reach out about listings, auctions or tax/trustee sales that match what you're looking for.</p>
+    <form class="leadform" id="leadForm">
+      <div>
+        <label for="leadName">Name</label>
+        <input type="text" id="leadName" name="name" required maxlength="120">
+      </div>
+      <div>
+        <label for="leadEmail">Email</label>
+        <input type="email" id="leadEmail" name="email" required maxlength="160">
+      </div>
+      <div>
+        <label for="leadPhone">Phone (optional)</label>
+        <input type="tel" id="leadPhone" name="phone" maxlength="40">
+      </div>
+      <div>
+        <label for="leadCounty">County of interest</label>
+        <select id="leadCounty" name="county">
+          <option value="">Any / not sure</option>
+          <option>Williamson</option>
+          <option>Burnet</option>
+          <option>Bell</option>
+          <option>Bastrop</option>
+          <option>McLennan</option>
+        </select>
+      </div>
+      <div class="full">
+        <label for="leadMessage">What are you looking for? (optional)</label>
+        <textarea id="leadMessage" name="message" maxlength="600"></textarea>
+      </div>
+      <div class="full submitrow">
+        <button type="submit" class="leadbtn" id="leadSubmit">Request a callback</button>
+        <span class="leadmsg" id="leadMsg"></span>
+      </div>
+    </form>
+  </section>
 
   <div class="tabs" role="tablist">
     <button id="tabLand" role="tab" aria-selected="true">Land listings<span class="count" id="cLand"></span></button>
@@ -521,6 +582,42 @@
   try{ var s=localStorage.getItem('ls_tab');
     if(s==='auc'||s==='tax'||s==='tru')selectTab(s); }catch(e){}
   loadLand(); loadAuc(); loadTax(); loadTru();
+
+  /* ---------- LEAD FORM ---------- */
+  document.getElementById('leadForm').addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var btn=document.getElementById('leadSubmit'), msg=document.getElementById('leadMsg');
+    var name=document.getElementById('leadName').value.trim();
+    var email=document.getElementById('leadEmail').value.trim();
+    var phone=document.getElementById('leadPhone').value.trim();
+    var county=document.getElementById('leadCounty').value;
+    var message=document.getElementById('leadMessage').value.trim();
+    if(!name||!email){
+      msg.className='leadmsg err'; msg.textContent='Please add your name and email.'; return;
+    }
+    btn.disabled=true; msg.className='leadmsg'; msg.textContent='Sending...';
+    fetch(SUPABASE_URL+'/rest/v1/leads',{
+      method:'POST',
+      headers:{
+        'apikey':SUPABASE_KEY,
+        'Authorization':'Bearer '+SUPABASE_KEY,
+        'Content-Type':'application/json',
+        'Prefer':'return=minimal'
+      },
+      body:JSON.stringify({name:name,email:email,phone:phone||null,county:county||null,message:message||null,source:'web'})
+    }).then(function(r){
+      btn.disabled=false;
+      if(r.ok){
+        msg.className='leadmsg ok'; msg.textContent='Thanks — we’ll be in touch soon.';
+        document.getElementById('leadForm').reset();
+      } else {
+        return r.text().then(function(t){ throw new Error('HTTP '+r.status+' '+t.slice(0,200)); });
+      }
+    }).catch(function(e){
+      btn.disabled=false;
+      msg.className='leadmsg err'; msg.textContent='Could not send — please try again in a moment.';
+    });
+  });
 </script>
 </body>
 </html>
