@@ -8,8 +8,9 @@ Live site: https://de-interview-dashboard.vercel.app
 
 Questions are grouped into categories, all using the same ecommerce orders dataset so patterns carry across topics.
 
-- **Core topics:** Spark, Delta Lake, Delta Live Tables, Snowflake performance, SQL on the order table, AI engineering, architecture and incidents
-- **Architecture tracks:** answer framework; Track A (batch + streaming: Lambda and Kappa); Track B (warehouse: Redshift and Postgres); Track C (Medallion on Databricks Delta); AWS track; incident scenarios; architecture comparison. Each track covers late-arriving data, data quality exceptions, and backfill / backtracking
+- **Core topics:** Spark, Delta Lake, Delta Live Tables, Snowflake performance, SQL on the order table, AI engineering
+- **Architecture patterns:** answer framework; Lambda / Kappa, warehouse and Medallion recaps; AWS, Snowflake and lakehouse reference architectures; Redshift vs Postgres; batch vs streaming
+- **Scenarios by type** (each shows the same problem across AWS, lakehouse, Snowflake and warehouse stacks, with interviewer follow-ups): ingestion and loading with fallback; late and slow data; backfill and backtracking; data quality; troubleshooting and incidents; hard scenarios to memorize (with a recall method and study plan)
 - **Tools and skills:** AWS, Glue and Airflow; Databricks lakehouse (MERGE upserts, streaming tables, materialized views, medallion placement); Snowflake warehouse (stages, COPY INTO, Snowpipe, streams and tasks, dynamic tables); tool-by-problem cheat sheet
 - **Practice:** mock interview prompt and answers worth memorising
 
@@ -29,9 +30,10 @@ Features: search across all questions, expand/collapse, per-question "Reviewed" 
 The questions are a JSON object named `DATA` inside the `<script>` block of `index.html`:
 
 ```
-DATA = { intro: "<html>", cats: [ { id, name, items: [ { q: "question", a: "<html answer>" } ] } ] }
+DATA = { intro: "<html>", cats: [ { id, name, group, items: [ { q: "question", a: "<html answer>", tag: "Hard" (optional) } ] } ] }
 ```
 
+- `group` sets the heading in the sidebar and home tiles; `tag` shows a badge (Classic, Hard, Very hard, Memorize) and is searchable.
 - Add a question: append `{ "q": "...", "a": "<p>...</p>" }` to a category's `items`.
 - Add a category: add an object to `cats`, then add its `id` to the `COLORS` map and a matching `--c-<id>` colour variable in the `:root` CSS block.
 - Answers are HTML. Code goes in `<pre><code class="language-sql">...</code></pre>`.
