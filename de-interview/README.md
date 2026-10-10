@@ -11,6 +11,7 @@ Questions are grouped into categories, all using the same ecommerce orders datas
 - **Core topics:** Spark, Delta Lake, Delta Live Tables, Snowflake performance, SQL on the order table, AI engineering
 - **Architecture patterns:** answer framework; Lambda / Kappa, warehouse and Medallion recaps; AWS, Snowflake and lakehouse reference architectures; Redshift vs Postgres; batch vs streaming
 - **Scenarios by type** (each shows the same problem across AWS, lakehouse, Snowflake and warehouse stacks, with interviewer follow-ups): ingestion and loading with fallback; late and slow data; backfill and backtracking; data quality; troubleshooting and incidents; hard scenarios to memorize (with a recall method and study plan)
+- **Governance & security:** Unity Catalog (hierarchy, grants, row filters and column masks, external locations, lineage and audit system tables, Delta Sharing, Hive-to-UC migration); governance tool map across Databricks, Snowflake and AWS (Lake Formation, KMS, Macie); OpenLineage, DataHub and catalog tools; PII workflow; governance scenarios (policy as code, data mesh, audit requests)
 - **Tools and skills:** AWS, Glue and Airflow; Databricks lakehouse (MERGE upserts, streaming tables, materialized views, medallion placement); Snowflake warehouse (stages, COPY INTO, Snowpipe, streams and tasks, dynamic tables); tool-by-problem cheat sheet
 - **Practice:** mock interview prompt and answers worth memorising
 
