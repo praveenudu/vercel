@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Praveen Gundavarapu: data and AI consulting (Excel AI Solutions) and Texas real estate.">
+<title>Praveen Gundavarapu</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column, two tracks. Data & AI (green) and Real estate (amber) share a left rail of labels with wide content beside it. */
+:root {
+  --bg: #EEF1EE;
+  --surface: #F8FAF8;
+  --ink: #101A18;
+  --muted: #4F5E5A;
+  --line: #CFD8D3;
+  --ai: #0B6E5A;
+  --ai-soft: #DCEBE5;
+  --re: #8F5300;
+  --re-soft: #F0E4D0;
+  --font-display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Instrument Sans", "Segoe UI", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1513; --surface: #141D1A; --ink: #E6EEEA; --muted: #93A39D; --line: #25322E;
+    --ai: #4FD1B0; --ai-soft: #12302A; --re: #E0A24A; --re-soft: #33261008;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1513; --surface: #141D1A; --ink: #E6EEEA; --muted: #93A39D; --line: #25322E;
+  --ai: #4FD1B0; --ai-soft: #12302A; --re: #E0A24A; --re-soft: #33261008;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 17px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+a { color: inherit; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--ai); outline-offset: 3px; }
+.wrap { max-width: 1020px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.08; letter-spacing: -0.01em; }
+p { margin: 0; }
+.mono { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+
+/* top bar */
+.bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; padding-block: 22px; border-bottom: 1px solid var(--line); }
+.bar nav { display: flex; gap: 22px; flex-wrap: wrap; }
+.bar a { text-decoration: none; }
+.bar a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+/* hero */
+.hero { padding-block: 72px 56px; display: grid; gap: 28px; }
+.hero h1 { font-size: clamp(2.6rem, 8vw, 5.4rem); font-weight: 700; }
+.hero .lead { font-size: clamp(1.15rem, 2.4vw, 1.5rem); max-width: 34ch; line-height: 1.35; }
+.hero .lead em { font-style: normal; color: var(--ai); font-weight: 600; }
+.hero .lead em.re { color: var(--re); }
+.tracks { display: flex; flex-wrap: wrap; gap: 12px; }
+.chip { display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px; border: 1px solid var(--line); background: var(--surface); text-decoration: none; font-weight: 500; }
+.chip::before { content: ""; width: 9px; height: 9px; background: var(--ai); }
+.chip.re::before { background: var(--re); }
+.chip:hover { border-color: var(--ink); }
+
+/* sections */
+section { border-top: 1px solid var(--line); padding-block: 52px; display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 24px 48px; }
+section > header { display: grid; gap: 10px; align-content: start; }
+section > header h2 { font-size: 1.9rem; }
+.tag-ai { color: var(--ai); } .tag-re { color: var(--re); }
+.body { display: grid; gap: 36px; min-width: 0; }
+.body > p.intro { font-size: 1.12rem; max-width: 60ch; }
+
+.list { display: grid; gap: 0; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; padding-block: 20px; border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; padding-top: 0; }
+.row h3 { font-size: 1.2rem; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.row p { color: var(--muted); max-width: 62ch; }
+.row .stack { font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink); opacity: 0.8; }
+.row h3 a { text-decoration-color: var(--line); text-underline-offset: 4px; }
+.row h3 a:hover { text-decoration-color: var(--ai); }
+.badge { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 8px; border: 1px solid var(--line); color: var(--muted); font-weight: 400; }
+
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px 40px; }
+.pair h3 { font-size: 1.05rem; margin-bottom: 6px; }
+.pair p { color: var(--muted); font-size: 0.97rem; }
+
+.figures { display: flex; flex-wrap: wrap; gap: 28px 48px; }
+.figures div { display: grid; gap: 2px; }
+.figures strong { font-family: var(--font-display); font-size: 2.4rem; line-height: 1; color: var(--re); }
+.figures span { color: var(--muted); font-size: 0.92rem; max-width: 22ch; }
+
+/* timeline */
+.tl { display: grid; gap: 0; }
+.tl-row { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 4px 28px; padding-block: 16px; border-top: 1px solid var(--line); }
+.tl-row:first-child { border-top: 0; padding-top: 0; }
+.tl-row .when { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); padding-top: 3px; }
+.tl-row strong { font-weight: 600; }
+.tl-row p { color: var(--muted); font-size: 0.97rem; }
+
+.contact-box { border: 1px dashed var(--muted); padding: 20px 22px; background: var(--surface); max-width: 520px; }
+.contact-box p + p { margin-top: 6px; }
+.contact-box .mono { display: block; margin-bottom: 8px; }
+
+footer { border-top: 1px solid var(--line); padding-block: 28px 40px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
+
+@media (max-width: 760px) {
+  section { grid-template-columns: minmax(0, 1fr); padding-block: 40px; }
+  .hero { padding-block: 48px 40px; }
+  .tl-row { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chip { transition: border-color .15s; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="bar">
+    <span class="mono">Leander, Texas · 30.58° N, 97.85° W</span>
+    <nav>
+      <a href="#ai">Data &amp; AI</a>
+      <a href="#realestate">Real estate</a>
+      <a href="#background">Background</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+
+  <div class="hero">
+    <h1>Praveen<br>Gundavarapu</h1>
+    <p class="lead">I build <em>data and AI systems</em> through Excel AI Solutions, and I help people buy and sell homes as a <em class="re">licensed Texas real estate agent</em>.</p>
+    <div class="tracks">
+      <a class="chip" href="#ai">Work with me on data and AI</a>
+      <a class="chip re" href="#realestate">Buy or sell in Central Texas</a>
+    </div>
+  </div>
+
+  <section id="ai">
+    <header>
+      <span class="mono tag-ai">Track 1</span>
+      <h2>Data and AI consulting</h2>
+      <p class="mono">Excel AI Solutions LLC</p>
+    </header>
+    <div class="body">
+      <p class="intro">Fourteen years as a senior data engineer, now applied to LLM workflows. I design pipelines on AWS and Databricks, add AI where it saves real time, and keep an eye on what each model call costs.</p>
+
+      <div class="pair">
+        <div>
+          <h3>Data engineering</h3>
+          <p>Extraction, Kafka streaming, Spark cluster design, lakehouse builds on Databricks and Delta Lake, PII handling, and cost and performance tuning.</p>
+        </div>
+        <div>
+          <h3>AI and agent workflows</h3>
+          <p>Agentic RAG, LangGraph agents, n8n automations on the Claude API, and CI/CD agents that decide and act on events.</p>
+        </div>
+        <div>
+          <h3>Claude API cost control</h3>
+          <p>Token counting, model routing and prompt caching, so an AI feature stays affordable once it has real traffic.</p>
+        </div>
+      </div>
+
+      <div class="list">
+        <div class="row">
+          <h3><a href="https://land.exileaisol.com" target="_blank" rel="noopener">Land Steal</a> <span class="badge">Live</span></h3>
+          <p>A dashboard of Texas land listings, foreclosure auctions, tax liens and monthly trustee sales, backed by Supabase and deployed on Vercel.</p>
+          <span class="stack">Supabase · Vercel · Redfin and LandWatch feeds</span>
+        </div>
+        <div class="row">
+          <h3>Land monitoring bot</h3>
+          <p>An n8n workflow that watches Redfin across four Texas counties every six hours. Claude scores each listing from 1 to 10 for investment potential, and anything scoring 7 or higher sends a Slack alert.</p>
+          <span class="stack">n8n · Claude API · PostgreSQL · Slack</span>
+        </div>
+        <div class="row">
+          <h3>Four-agent analytics pipeline</h3>
+          <p>Four agents run in order: explore the schema, summarize, build an offline HTML dashboard, deploy it. The pipeline is read-only and keeps customer personal data out of every output.</p>
+          <span class="stack">Supabase · Claude agents · Vercel</span>
+        </div>
+        <div class="row">
+          <h3>Rental listing automation</h3>
+          <p>Three scheduled workflows post rental listings, check competitor listings and monitor activity through the day.</p>
+          <span class="stack">n8n · Claude API · Facebook Graph API · PostgreSQL</span>
+        </div>
+        <div class="row">
+          <h3>Visual inventory audit <span class="badge">Concept</span></h3>
+          <p>Camera-based shelf auditing to replace manual barcode scans. Photos stay on the retailer's own servers by default, with optional Claude features on top.</p>
+          <span class="stack">YOLO · LLaVA · Claude API</span>
+        </div>
+        <div class="row">
+          <h3>Writing on AI cost and design</h3>
+          <p>A weekly LinkedIn series on Claude API tokens, pricing and model selection, plus posts on Spark cluster design and AI evaluation.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="realestate">
+    <header>
+      <span class="mono tag-re">Track 2</span>
+      <h2>Real estate and client service</h2>
+      <p class="mono">eXp Realty · Austin</p>
+    </header>
+    <div class="body">
+      <p class="intro">Licensed in Texas since 2024. I work with buyers and sellers from first conversation to closing, and I keep the paperwork accurate and on schedule.</p>
+
+      <div class="pair">
+        <div>
+          <h3>Buyers and sellers</h3>
+          <p>Financing options, pre-approval, purchase agreements and disclosures, with lenders and title companies coordinated through closing.</p>
+        </div>
+        <div>
+          <h3>Marketing</h3>
+          <p>Listings promoted online, on social media and at open houses to bring in buyer and seller leads.</p>
+        </div>
+        <div>
+          <h3>Follow-up</h3>
+          <p>Every client tracked in a CRM with regular check-ins. Referrals and repeat business come from that routine.</p>
+        </div>
+      </div>
+
+      <div class="figures">
+        <div><strong>1,000+</strong><span>customers served per shift in retail</span></div>
+        <div><strong>+16%</strong><span>average sale per transaction through upselling</span></div>
+        <div><strong>0</strong><span>drawer shortages, with counts balanced to the penny</span></div>
+      </div>
+      <p style="color:var(--muted);max-width:62ch">The figures come from my current customer service role. It gave me daily practice in cash handling, reconciliation, fast and accurate service, and training new team members. I also invest in Texas land and rental property, which is why the Land Steal dashboard above exists.</p>
+    </div>
+  </section>
+
+  <section id="background">
+    <header>
+      <span class="mono">Background</span>
+      <h2>Where I have worked</h2>
+    </header>
+    <div class="body">
+      <div class="tl">
+        <div class="tl-row">
+          <span class="when">2025 – now</span>
+          <div><strong>Sales Associate and Customer Service Specialist</strong>, Circle K, Leander TX
+            <p>Cash handling, deposits, end-of-shift reconciliation, and training two new team members.</p></div>
+        </div>
+        <div class="tl-row">
+          <span class="when">2024 – now</span>
+          <div><strong>Licensed Real Estate Agent</strong>, eXp Realty, Austin TX
+            <p>Buyer and seller representation, listing marketing and contract preparation.</p></div>
+        </div>
+        <div class="tl-row">
+          <span class="when">2022 – 2024</span>
+          <div><strong>Financial Services and Accounting</strong>, Thrive Soft Inc, Bellevue WA</div>
+        </div>
+        <div class="tl-row">
+          <span class="when">14 years</span>
+          <div><strong>Senior Data Engineer</strong>
+            <p>Data extraction, AWS, Kafka streaming, PII implementation, and cost and performance optimization. Earlier work in risk and loss-factor analysis for claims insurance.</p></div>
+        </div>
+        <div class="tl-row">
+          <span class="when">Education</span>
+          <div><strong>M.S. Mechatronics</strong>, RWTH Aachen University, Germany
+            <p>Bachelor of Engineering and Science, JNTU.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <header>
+      <span class="mono">Contact</span>
+      <h2>Get in touch</h2>
+    </header>
+    <div class="body">
+      <p class="intro">For data and AI projects, write about what you are trying to build. For real estate, tell me the area and the timeline.</p>
+      <div class="contact-box">
+        <span class="mono">Draft placeholder</span>
+        <p>Email: <strong>[add public email]</strong></p>
+        <p>LinkedIn: <strong>[add profile link]</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span class="mono">Praveen Gundavarapu · Leander, Texas</span>
+    <span class="mono">exileaisol.com</span>
+  </footer>
+</div>
+</body>
+</html>
