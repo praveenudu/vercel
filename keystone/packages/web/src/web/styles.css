@@ -1,0 +1,72 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --font-sans: "Noto Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sig: "Caveat", cursive;
+  --color-brand: #2f6eb5;
+  --color-brand-dark: #245a96;
+  --color-navy: #1b3a5c;
+  --color-tint: #e8f0fb;
+  --color-ink: #1a2433;
+  --color-body: #3d4a5c;
+  --color-muted: #6b7789;
+  --color-line: #e1e6ed;
+  --color-app: #f4f6f9;
+  --color-ok: #1e8e5a;
+  --color-ok-tint: #e5f5ec;
+  --color-warn: #b7791f;
+  --color-warn-tint: #fdf3e1;
+  --color-bad: #c53030;
+  --color-bad-tint: #fbe9e9;
+  --color-border: #e1e6ed;
+  --color-ring: #2f6eb5;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body {
+    @apply bg-white text-body font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-ink;
+  }
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+.page-enter {
+  animation: pageIn 0.35s ease-out backwards;
+}
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.stagger > * {
+  animation: pageIn 0.4s ease-out backwards;
+}
+.stagger > *:nth-child(2) { animation-delay: 0.05s; }
+.stagger > *:nth-child(3) { animation-delay: 0.1s; }
+.stagger > *:nth-child(4) { animation-delay: 0.15s; }
+.stagger > *:nth-child(5) { animation-delay: 0.2s; }
+.stagger > *:nth-child(6) { animation-delay: 0.25s; }
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+}
